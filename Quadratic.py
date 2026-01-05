@@ -21,7 +21,7 @@ plt.rc('font', size=16)
 plt.close('all')
 
 # Set a fixed random seed for reproducibility.
-np.random.seed(0)
+# np.random.seed(0)
 
 
 # Choose h(x) here, the observation rule
@@ -30,15 +30,17 @@ def h(x):
     return x*x
 
 def A(x,t=0):
-    return F @ x
-
+    try:
+        return F @ x
+    except:
+        return torch.from_numpy(F).to(torch.float32) @ x
 
 def Gen_True_Data(L, dy, T, sigma0, sigma, gamma, tau):
     """
-    Generates true state and observation data using the Lorenz 63 model.
+    Generates true state and observation data using the Linear-Quadratic model.
     
-    For a given number of time steps, the true state is evolved by integrating 
-    the Lorenz 63 model. The observations are generated using an observation rule
+    For a given number of time steps, the true state is evolved by the
+    Linear model. The observations are generated using an observation rule
     (function h) with added Gaussian noise.
     
     Parameters
@@ -72,10 +74,9 @@ def Gen_True_Data(L, dy, T, sigma0, sigma, gamma, tau):
     # Set initial state with added noise from a multivariate normal distribution.
     x[0,] = np.random.multivariate_normal(np.zeros(L), sigma0 * sigma0 * np.eye(L), 1).T
 
-    # Integrate the Lorenz 63 model through all time steps.
     for i in range(T - 1):
-        # Propagate the state using the Lorenz 63 dynamics.
-        x[i + 1, :] = x[i, :] + A(x[i, :], 0) * tau
+        # Propagate the state using the Linear dynamics.
+        x[i + 1, :] =  A(x[i, :]) + np.random.multivariate_normal(np.zeros(L),sigma*sigma * np.eye(L),1).T
         # Generate the observation by applying the observation function h and adding noise.
         y[i + 1, :] = h(x[i + 1, :]) + np.random.multivariate_normal(np.zeros(dy), gamma * gamma * np.eye(dy), 1).T
     
@@ -86,8 +87,7 @@ def Gen_True_Data(L, dy, T, sigma0, sigma, gamma, tau):
 n = 2 
 L = n*2 # number of states
 tau = 1e-1 # timpe step 
-T = 5 # final time in seconds
-T = int(T/tau) # number of time steps T = 20 s
+T = int(5/tau) # number of time steps T = 5 s
 dy = L # number of states observed
 t = np.arange(0.0, tau * T, tau)  # Time vector.
 
@@ -95,18 +95,17 @@ t = np.arange(0.0, tau * T, tau)  # Time vector.
 # H = np.array([[1,0]]) 
 H = np.eye(1,dy)
 alpha = 0.9
-a = alpha
+a = alpha 
 b = np.sqrt(1-alpha**2)
-c = alpha
+# c = alpha
 
 F = np.array([[a, -b],[b,a]]) 
-# F = np.array([[a, b, 0, 0 , 0],[-b,c,b,0,0],[0,-b,c,b,0],[0,0,-b,c,b],[0,0,0,-b,c]]) 
 
 F = np.kron(np.eye(int(n)), F)
-# F = np.eye(2*n)*0.99
+# F = np.eye(2*n)*0.9
 
 
-noise = np.sqrt(1e-1) # noise level std
+noise = np.sqrt(1e-2) # noise level std
 sigma = noise # Noise in the hidden state
 sigma0 = 1#5*noise # Noise in the initial state distribution
 gamma = noise # Noise in the observation
@@ -117,7 +116,7 @@ Noise = [sigma, gamma]
 
 
 
-N = int(1e3)  # Number of ensemble particles.
+N = int(1e4)  # Number of ensemble particles.
 NUM_SIM = 1        # Number of independent simulations.
 
 # Define hyperparameters for the optimal transport networks.
@@ -126,11 +125,11 @@ parameters = {
     'INPUT_DIM': [L, dy],
     'NUM_NEURON': int(64 / 1),
     'BATCH_SIZE': int(64 / 1),
-    'LearningRate': [1e-3 , 1e-3],  # Learning rates for the mapping networks.
-    'ITERATION': int(1024),
-    'Final_Number_ITERATION': int(64 / 4),
+    'LearningRate': [1e-5 , 1e-5],  # Learning rates for the mapping networks.
+    'ITERATION': int(1024*4),
+    'Final_Number_ITERATION': int(64 * 16),
     'K_in': 10,
-    'num_resblocks': [1, 1]  # Number of residual blocks for the two networks.
+    'num_resblocks': [2, 3]  # Number of residual blocks for the two networks (f,T).
 }
 
 # Containers for true states, observations, and initial particles.
@@ -149,12 +148,14 @@ X_EnKF = EnKF(Y_True, X0, A, h, t, Noise, SIGMA=1e-6)
 X_SIR = SIR(Y_True, X0, A, h, t, Noise)
 X_OTF = OTF(Y_True, X0, A, h, t, Noise, parameters)
 
+#%%
 # Plot the results for each filtering method alongside the true state.
+plot_particle = 500
 plt.figure(figsize=(20, 12))
 for l in range(L):
     # Plot EnKF results.
     plt.subplot(L, 3, 3 * l + 1)
-    plt.plot(t, X_EnKF[k, :, l, :], 'g', alpha=0.1)
+    plt.plot(t, X_EnKF[k, :, l, :plot_particle], 'g', alpha=0.1)
     plt.plot(t, X_True[k, :, l], 'k--', label='True state')
     plt.xlabel('Time')
     if l == 0:
@@ -167,7 +168,7 @@ for l in range(L):
 for l in range(L):
     # Plot SIR results.
     plt.subplot(L, 3, 3 * l + 2)
-    plt.plot(t, X_SIR[k, :, l, :], 'b', alpha=0.1)
+    plt.plot(t, X_SIR[k, :, l, :plot_particle], 'b', alpha=0.1)
     plt.plot(t, X_True[k, :, l], 'k--', label='True state')
     plt.xlabel('Time')
     if l == 0:
@@ -178,7 +179,7 @@ for l in range(L):
 for l in range(L):
     # Plot OTF results.
     plt.subplot(L, 3, 3 * l + 3)
-    plt.plot(t, X_OTF[k, :, l, :], 'r', alpha=0.1)
+    plt.plot(t, X_OTF[k, :, l, :plot_particle], 'r', alpha=0.1)
     plt.plot(t, X_True[k, :, l], 'k--', label='True state')
     plt.xlabel('Time')
     if l == 0:

@@ -274,7 +274,7 @@ def OTF(Y,X0,A,h,t,Noise,parameters):
             # Generate process noise for all particles at the current time step (shape: N x L).
             x_noise = torch.distributions.MultivariateNormal(torch.zeros(L), covariance_matrix=sigma * sigma * torch.eye(L))
             # Propagate particles using the model A with added noise.
-            X1 = X_OTF[k,i,] + tau * A(X_OTF[k,i,].T,t[i]).T  + x_noise.sample((N,)).to(device)
+            X1 = A(X_OTF[k,i,].T,t[i]).T  + x_noise.sample((N,)).to(device)
             
             # Generate observation noise for each particle (shape: N x dy).
             y_noise = torch.distributions.MultivariateNormal(torch.zeros(dy), covariance_matrix=gamma * gamma * torch.eye(dy))

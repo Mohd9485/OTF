@@ -58,7 +58,7 @@ def L63(x, t):
     d[0] = sigma * (x[1] - x[0])
     d[1] = x[0] * (r - x[2]) - x[1]
     d[2] = x[0] * x[1] - b * x[2]
-    return d
+    return x+tau*d
 
 
 def Gen_True_Data(L, dy, T, sigma0, sigma, gamma, tau):
@@ -103,7 +103,7 @@ def Gen_True_Data(L, dy, T, sigma0, sigma, gamma, tau):
     # Integrate the Lorenz 63 model through all time steps.
     for i in range(T - 1):
         # Propagate the state using the Lorenz 63 dynamics.
-        x[i + 1, :] = x[i, :] + L63(x[i, :], t[i]) * tau
+        x[i + 1, :] =  L63(x[i, :], t[i]) 
         # Generate the observation by applying the observation function h and adding noise.
         y[i + 1, :] = h(x[i + 1, :]) + np.random.multivariate_normal(np.zeros(dy), gamma * gamma * np.eye(dy), 1).T
     
@@ -155,7 +155,7 @@ parameters = {
     'NUM_NEURON': int(64 / 1),
     'BATCH_SIZE': int(64 / 1),
     'LearningRate': [1e-3 / 5, 1e-3],  # Learning rates for the mapping networks.
-    'ITERATION': int(1024 / 16),
+    'ITERATION': int(1024 / 1),
     'Final_Number_ITERATION': int(64 / 4),
     'K_in': 10,
     'num_resblocks': [1, 1]  # Number of residual blocks for the two networks.

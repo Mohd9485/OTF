@@ -63,10 +63,9 @@ def SIR(Y,X0,A,h,t,Noise):
             # Generate process noise for all particles at the current time step (shape: N x L).
             x_noise = np.random.multivariate_normal(np.zeros(L), sigma * sigma * np.eye(L), N)
             # Propagate particles using the model A with added noise.
-            x_SIR[k,i+1,] = x_SIR[k,i,]+ tau * A(x_SIR[k,i,].T,t[i]).T + x_noise
-            
+            x_SIR[k,i+1,] = A(x_SIR[k,i,].T,t[i]).T + x_noise
             # Calculate the weight for each particle based on its observation likelihood P(Y|X^i).
-            W = np.sum((y[i+1,] - h(x_SIR[k,i+1,].T).T)*(y[i+1] - h(x_SIR[k,i+1,].T).T),axis=1)/(2*gamma*gamma)
+            W = np.sum((y[i+1,].T - h(x_SIR[k,i+1,].T).T)*(y[i+1,].T - h(x_SIR[k,i+1,].T).T),axis=1)/(2*gamma*gamma)
             # Adjust weights by subtracting the minimum value (for numerical stability).
             W = W - np.min(W)
             W = np.exp(-W).T
