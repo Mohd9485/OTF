@@ -9,7 +9,7 @@ import sys
 import matplotlib
 from EnKF import EnKF
 from SIR import SIR
-from OTF_1 import OTF
+from OTF import OTF
 
 # Configure matplotlib to embed fonts in PDF/PS outputs and set default font sizes.
 matplotlib.rcParams['pdf.fonttype'] = 42
