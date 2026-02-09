@@ -27,7 +27,8 @@ plt.close('all')
 # Choose h(x) here, the observation rule
 def h(x):
     # return x[0].reshape(1,-1)*x[0].reshape(1,-1)
-    return x*x
+    return x[[0,2]]*x[[0,2]]
+    # return x*x
 
 def A(x,t=0):
     try:
@@ -105,31 +106,27 @@ F = np.kron(np.eye(int(n)), F)
 # F = np.eye(2*n)*0.9
 
 
-noise = np.sqrt(1e-2) # noise level std
+noise = np.sqrt(1e-1) # noise level std
 sigma = noise # Noise in the hidden state
 sigma0 = 1#5*noise # Noise in the initial state distribution
 gamma = noise # Noise in the observation
 x0_amp = 1#/noise # Amplifiying the initial state 
 Noise = [sigma, gamma]
 
-
-
-
-
-N = int(1e4)  # Number of ensemble particles.
+N = int(1e3)  # Number of ensemble particles.
 NUM_SIM = 1        # Number of independent simulations.
 
 # Define hyperparameters for the optimal transport networks.
 parameters = {
     'normalization': 'None',   # Options: 'None', 'Standard', 'MinMax'
     'INPUT_DIM': [L, dy],
-    'NUM_NEURON': int(64 / 1),
-    'BATCH_SIZE': int(64 / 1),
-    'LearningRate': [1e-5 , 1e-5],  # Learning rates for the mapping networks.
-    'ITERATION': int(1024*4),
-    'Final_Number_ITERATION': int(64 * 16),
-    'K_in': 10,
-    'num_resblocks': [2, 3]  # Number of residual blocks for the two networks (f,T).
+    'NUM_NEURON': int(64 / 2),
+    'BATCH_SIZE': int(64 / 2),
+    'LearningRate': [1e-4 , 1e-4],  # Learning rates for the mapping networks.
+    'ITERATION': int(1024*1),
+    'Final_Number_ITERATION': int(64 /2),
+    'K_in': 10,  # Number of inner iterations for the transport map optimization.
+    'num_resblocks': [2, 2]  # Number of residual blocks for the two networks (f,T).
 }
 
 # Containers for true states, observations, and initial particles.
