@@ -62,12 +62,12 @@ def EnKF(Y, X0, A, h, t, Noise, SIGMA=1e-6):
         # Time stepping for the filter (excluding the final time step).
         for i in range(T - 1):
             # Generate process noise for all particles at the current time step (shape: N x L).
-            x_noise = np.random.multivariate_normal(np.zeros(L), sigma * sigma * np.eye(L), N)
+            x_noise = sigma*np.random.multivariate_normal(np.zeros(L), np.eye(L), N)
             # Propagate particles using the model A with added noise.
             x_hatEnKF = A(X_EnKF[k, i,].T, t[i]).T + x_noise
             
             # Generate observation noise for each particle (shape: N x dy).
-            y_noise = np.random.multivariate_normal(np.zeros(dy), gamma * gamma * np.eye(dy), N)
+            y_noise = gamma * np.random.multivariate_normal(np.zeros(dy),  np.eye(dy), N)
             # Compute the predicted observation for each particle with added noise.
             y_hatEnKF = h(x_hatEnKF.T).T + y_noise
             

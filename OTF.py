@@ -44,6 +44,7 @@ def OTF(Y,X0,A,h,t,Noise,parameters):
     T = Y.shape[1]
     dy = Y.shape[2]
 
+    INPUT_DIM = [L, dy]
     # Unpack the noise levels:
     # sigma corresponds to noise in the hidden state,
     # gamma corresponds to noise in the observation.
@@ -56,7 +57,6 @@ def OTF(Y,X0,A,h,t,Noise,parameters):
     # Retrieve hyperparameters for the neural networks from the parameters dictionary.
     normalization = parameters['normalization']
     NUM_NEURON = parameters['NUM_NEURON']
-    INPUT_DIM = parameters['INPUT_DIM']
     BATCH_SIZE =  parameters['BATCH_SIZE']
     LearningRate = parameters['LearningRate']
     ITERATION = parameters['ITERATION']
@@ -272,14 +272,14 @@ def OTF(Y,X0,A,h,t,Noise,parameters):
         MAP_T.apply(init_weights)     
         for i in range(T-1):
             # Generate process noise for all particles at the current time step (shape: N x L).
-            x_noise = torch.distributions.MultivariateNormal(torch.zeros(L), covariance_matrix=sigma * sigma * torch.eye(L))
+            x_noise = torch.distributions.MultivariateNormal(torch.zeros(L), covariance_matrix= torch.eye(L))
             # Propagate particles using the model A with added noise.
-            X1 = A(X_OTF[k,i,].T,t[i]).T  + x_noise.sample((N,)).to(device)
+            X1 = A(X_OTF[k,i,].T,t[i]).T  + sigma * x_noise.sample((N,)).to(device)
             
             # Generate observation noise for each particle (shape: N x dy).
-            y_noise = torch.distributions.MultivariateNormal(torch.zeros(dy), covariance_matrix=gamma * gamma * torch.eye(dy))
+            y_noise = torch.distributions.MultivariateNormal(torch.zeros(dy), covariance_matrix= torch.eye(dy))
             # Compute the predicted observation for each particle with added noise.
-            Y1 = h(X1.T).T + y_noise.sample((N,)).to(device)
+            Y1 = h(X1.T).T + gamma * y_noise.sample((N,)).to(device)
             
             # Optionally normalize the particles and predicted observations using the specified scaling method.
             if normalization == 'Standard':
