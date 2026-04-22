@@ -89,7 +89,7 @@ n = 2
 L = n*2 # number of states
 tau = 1e-1 # timpe step 
 T = int(5/tau) # number of time steps T = 5 s
-dy = L # number of states observed
+dy = n # number of states observed
 t = np.arange(0.0, tau * T, tau)  # Time vector.
 
 # dynmaical system
