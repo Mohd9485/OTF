@@ -261,8 +261,8 @@ def OTF(Y,X0,A,h,t,Noise,parameters):
         LR = LearningRate
         
         # Instantiate the two neural network models.
-        f = f_NeuralNet(INPUT_DIM, NUM_NEURON,num_resblocks[0])
-        MAP_T = T_NeuralNet(INPUT_DIM, NUM_NEURON,num_resblocks[1])
+        f = f_NeuralNet(INPUT_DIM, NUM_NEURON[0],num_resblocks[0])
+        MAP_T = T_NeuralNet(INPUT_DIM, NUM_NEURON[1],num_resblocks[1])
         
         f.to(device)
         MAP_T.to(device) 
