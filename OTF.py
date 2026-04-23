@@ -304,11 +304,13 @@ def OTF(Y,X0,A,h,t,Noise,parameters):
                 ITERS = int(ITERS/2)
             
             # Prepare the true observation at the next time step for input to the transport network.
-            Y1_true = y[i+1,:]
-            if normalization == 'Standard' or normalization == 'MinMax':
+            Y1_true = y[i + 1, :]                         # (dy x 1)
+            # Broadcast observation to all N particles: (N x dy)
+            Y1_true = Y1_true.repeat(N, 1).T
+            if normalization in ('Standard', 'MinMax'):
                 Y1_true = scaler_Y.transform(Y1_true)
-            Y1_true = torch.from_numpy(Y1_true)
-            Y1_true = Y1_true.to(torch.float32)
+            
+            Y1_true = torch.from_numpy(Y1_true).to(torch.float32).to(device)
             
             # Apply the transport network to the propagated particles.
             X_mapped = MAP_T.forward(X1, (Y1_true.T.repeat(N, 1)).to(device))
