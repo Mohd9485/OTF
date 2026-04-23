@@ -313,7 +313,7 @@ def OTF(Y,X0,A,h,t,Noise,parameters):
             Y1_true = torch.from_numpy(Y1_true).to(torch.float32).to(device)
             
             # Apply the transport network to the propagated particles.
-            X_mapped = MAP_T.forward(X1, (Y1_true.T.repeat(N, 1)).to(device))
+            X_mapped = MAP_T.forward(X1, Y1_true)
             # X_mapped = MAP_T.forward(X1, (Y1_true*torch.ones((N,dy))).to(device))
             
             # If normalization was used, reverse the scaling on the transported particle states.
