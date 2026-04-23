@@ -120,7 +120,7 @@ NUM_SIM = 1        # Number of independent simulations.
 parameters = {
     'normalization': 'None',   # Options: 'None', 'Standard', 'MinMax'
     'INPUT_DIM': [L, dy],
-    'NUM_NEURON': int(64 / 2),
+    'NUM_NEURON': [int(64 / 2),int(64 / 2)],
     'BATCH_SIZE': int(64 / 2),
     'LearningRate': [1e-4 , 1e-4],  # Learning rates for the mapping networks.
     'ITERATION': int(1024*1),
